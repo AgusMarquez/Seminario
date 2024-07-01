@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-
     private static IngredienteDAO ingredienteDAO = new IngredienteDAO();
 
     public static void main(String[] args) {
@@ -44,8 +43,9 @@ public class Main {
             System.out.println("1. Agregar Ingrediente");
             System.out.println("2. Quitar Ingrediente");
             System.out.println("3. Consultar Inventario");
-            System.out.println("4. Orden de Compra");
-            System.out.println("5. Volver al Menú Principal");
+            System.out.println("4. Agregar Ingredientes Necesarios para Clase");
+            System.out.println("5. Orden de Compra");
+            System.out.println("6. Volver al Menú Principal");
 
             int opcion = scanner.nextInt();
             switch (opcion) {
@@ -59,9 +59,12 @@ public class Main {
                     consultarInventario();
                     break;
                 case 4:
-                    // Lógica para orden de compra
+                    agregarIngredientesParaClase();
                     break;
                 case 5:
+                    // Lógica para orden de compra
+                    break;
+                case 6:
                     return;
                 default:
                     System.out.println("Opción no válida.");
@@ -109,6 +112,64 @@ public class Main {
         }
     }
 
+    public static void agregarIngredientesParaClase() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Agregar Ingredientes Necesarios para Clase:");
+        while (true) {
+            System.out.println("Ingrese el nombre del ingrediente necesario:");
+            String nombre = scanner.nextLine();
+
+            // Consultar el inventario para verificar disponibilidad
+            Ingrediente ingredienteEnInventario = ingredienteDAO.buscarIngredientePorNombre(nombre);
+            if (ingredienteEnInventario == null) {
+                System.out.println("El ingrediente no está disponible en el inventario.");
+                continue;
+            }
+
+            System.out.println("Ingrese la cantidad necesaria:");
+            int cantidadNecesaria = scanner.nextInt();
+
+            // Verificar si hay suficiente cantidad en el inventario
+            int cantidadDisponible = ingredienteEnInventario.getCantidad();
+            if (cantidadDisponible >= cantidadNecesaria) {
+                System.out.println("Cantidad suficiente en el inventario.");
+            } else {
+                System.out.println("No hay suficiente cantidad en el inventario. Faltan " +
+                                   (cantidadNecesaria - cantidadDisponible) + " unidades.");
+            }
+
+            // Agregar a la lista de ingredientes necesarios
+            Ingrediente ingredienteNecesario = new Ingrediente(nombre, cantidadNecesaria, true);
+            ingredienteDAO.agregarIngredienteNecesario(ingredienteNecesario);
+
+            System.out.println("¿Desea agregar otro ingrediente necesario? (s/n)");
+            String respuesta = scanner.next();
+            if (!respuesta.equalsIgnoreCase("s")) {
+                break;
+            }
+            scanner.nextLine(); // Limpiar el buffer antes de volver a pedir nombre
+        }
+
+        // Mostrar lista de ingredientes necesarios
+        List<Ingrediente> ingredientesNecesarios = ingredienteDAO.consultarIngredientesNecesarios();
+        System.out.println("Ingredientes Necesarios para la Clase:");
+        for (Ingrediente ingrediente : ingredientesNecesarios) {
+            System.out.println("Nombre: " + ingrediente.getNombre() +
+                               ", Cantidad Necesaria: " + ingrediente.getCantidad());
+        }
+
+        // Generar y guardar PDF de la orden de compra
+        // Aquí se podría implementar la lógica para guardar en PDF, según las bibliotecas disponibles
+
+        System.out.println("Orden de Compra generada y almacenada.");
+
+        // Volver al menú principal
+        scanner.nextLine(); // Limpiar el buffer antes de volver al menú
+        System.out.println("Presione Enter para volver al Menú Principal...");
+        scanner.nextLine(); // Esperar la confirmación del usuario
+    }
+
     public static void menuProfesor() {
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -128,4 +189,14 @@ public class Main {
             }
         }
     }
+    
+    public static void mostrarOrdenCompra(List<Ingrediente> ordenCompra) {
+    System.out.println("Orden de Compra:");
+    for (Ingrediente ingrediente : ordenCompra) {
+        System.out.println("Nombre: " + ingrediente.getNombre() +
+                           ", Cantidad a Comprar: " + ingrediente.getCantidad());
+    }
 }
+    
+}
+
